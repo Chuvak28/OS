@@ -54,6 +54,6 @@ int main()
     printf("%s\n",buffer );
     send(new_socket , hello , strlen(hello) , 0 );
     printf("Hello message sent\n");
-    printf("It is me Ismoil\n");
+    printf("It is me         Ismoil\n");
     return 0;
 }

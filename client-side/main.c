@@ -38,5 +38,6 @@ int main()
     printf("Hello message sent\n");
     valread = read( sock , buffer, 1024);
     printf("%s\n",buffer );
+    printf("hello from Nozima");
     return 0;
 }

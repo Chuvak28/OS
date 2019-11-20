@@ -5,10 +5,17 @@
 #include <netinet/in.h>
 #include <string.h>
 #define PORT 8080
+#define BUFFSIZE 4096
+#define MAX_LINE 4096
+#define LINSTENPORT 7788
+#define SERVERPORT 8877
+
+ssize_t total=0;
+
 int main()
 {
     int server_fd, new_socket, valread;
-    struct sockaddr_in address;
+    struct sockaddr_in address, clientaddr;
     int opt = 1;
     int addrlen = sizeof(address);
     char buffer[1024] = {0};
@@ -23,7 +30,7 @@ int main()
 
     // Forcefully attaching socket to the port 8080
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT,
-                                                  &opt, sizeof(opt)))
+                   &opt, sizeof(opt)))
     {
         perror("setsockopt");
         exit(EXIT_FAILURE);
@@ -34,7 +41,7 @@ int main()
 
     // Forcefully attaching socket to the port 8080
     if (bind(server_fd, (struct sockaddr *)&address,
-                                 sizeof(address))<0)
+             sizeof(address))<0)
     {
         perror("bind failed");
         exit(EXIT_FAILURE);
@@ -45,15 +52,51 @@ int main()
         exit(EXIT_FAILURE);
     }
     if ((new_socket = accept(server_fd, (struct sockaddr *)&address,
-                       (socklen_t*)&addrlen))<0)
+                             (socklen_t*)&addrlen))<0)
     {
         perror("accept");
         exit(EXIT_FAILURE);
     }
-    valread = read( new_socket , buffer, 1024);
-    printf("%s\n",buffer );
-    send(new_socket , hello , strlen(hello) , 0 );
-    printf("Hello message sent\n");
-    printf("It is me         Ismoil\n");
+
+    char filename[BUFFSIZE] = {0};
+    if (recv(new_socket, filename, BUFFSIZE, 0) == -1)
+    {
+        perror("Can't receive filename");
+        exit(1);
+    }
+    FILE *fp = fopen(filename, "wb");
+    if (fp == NULL)
+    {
+        perror("Can't open file");
+        exit(1);
+    }
+
+    char addr[INET_ADDRSTRLEN];
+    printf("Start receive file: %s from %s\n", filename, inet_ntop(AF_INET, &clientaddr.sin_addr, addr, INET_ADDRSTRLEN));
+    ssize_t n;
+        char buff[MAX_LINE] = {0};
+        while ((n = recv(new_socket, buff, MAX_LINE, 0)) > 0)
+        {
+            total+=n;
+            if (n == -1)
+            {
+                perror("Receive File Error");
+                exit(1);
+            }
+
+            if (fwrite(buff, sizeof(char), n, fp) != n)
+            {
+                perror("Write File Error");
+                exit(1);
+            }
+            memset(buff, 0, MAX_LINE);
+        }
+    printf("Receive Success, NumBytes = %ld\n", total);
+
+    //    valread = read( new_socket , buffer, 1024);
+    //    printf("%s\n",buffer );
+    //    recv(new_socket , hello , strlen(hello) , 0 );
+    //    printf("Hello message sent\n");
+    //    printf("It is me         Ismoil\n");
     return 0;
 }

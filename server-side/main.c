@@ -75,8 +75,12 @@ int main(int argc, char *argv[])
 
         pthread_t sniffer_thread;
         new_sock = (int*)malloc(sizeof(int));
-        *new_sock = new_socket;
-
+        *new_sock = newsockfd;
+        if( pthread_create( &sniffer_thread , NULL , connection_handler , (void*) new_sock) < 0)
+        {
+        perror("could not create thread");
+        return 1;
+        }
 
 
     }
@@ -93,6 +97,8 @@ void *connection_handler(void *socket_desc)
     int sock = *(int*)socket_desc;
     int read_size;
     char *message , client_message[2000];
+    char buffer[256];
+    int n;
 
     //Send some messages to the client
     message = "Greetings! I am your connection handler\n";

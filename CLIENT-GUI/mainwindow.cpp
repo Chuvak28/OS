@@ -30,6 +30,8 @@ void MainWindow::on_pushButton_Connect_clicked()
 
 void MainWindow::on_pushButton_Send_clicked()
 {
+    char *str2 = ui->lineEdit_Display_PATH->text().toLatin1().data();
 
-    fileSEND("localhost", 4547, "1.jpg", "received.jpeg");
+    //fileSEND("localhost", 4547, "1.jpg", "received.jpeg");
+    fileSEND("localhost", 4547, str2, "received.jpeg");
 }

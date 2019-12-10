@@ -1,5 +1,4 @@
-/* A simple server in the internet domain using TCP
-   The port number is passed as an argument */
+/* A simple server in the internet domain using TCP  The port number is passed as an argument */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,8 +7,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <pthread.h>
-
-
 
 #define PORT 4547
 

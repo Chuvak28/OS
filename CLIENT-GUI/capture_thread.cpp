@@ -1,8 +1,6 @@
 #include <QTime>
-#include <QtConcurrent>
+#include <QtConcurrent/QtConcurrent>
 #include <QDebug>
-
-#include "utilities.h"
 #include "capture_thread.h"
 
 CaptureThread::CaptureThread(int camera, QMutex *lock):
@@ -38,41 +36,42 @@ CaptureThread::~CaptureThread() {
 
 void CaptureThread::run() {
     running = true;
-    cv::VideoCapture cap(0);
-    // cv::VideoCapture cap("/home/kdr2/Videos/WIN_20190123_20_14_56_Pro.mp4");
+    cv::VideoCapture cap(cameraID);
     cv::Mat tmp_frame;
 
-    frame_width = cap.get(cv::CAP_PROP_FRAME_WIDTH);
-    frame_height = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
+//    frame_width = cap.get(cv::CAP_PROP_FRAME_WIDTH);
+//    frame_height = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
 
-    segmentor = cv::createBackgroundSubtractorMOG2(500, 16, true);
+//    segmentor = cv::createBackgroundSubtractorMOG2(500, 16, true);
 
-    while(running) {
+   while(running) {
+      // data_lock->lock();
         cap >> tmp_frame;
         if (tmp_frame.empty()) {
+        //    data_lock->unlock();
             break;
         }
-        if(motion_detecting_status) {
-            motionDetect(tmp_frame);
-        }
-        if(video_saving_status == STARTING) {
-            startSavingVideo(tmp_frame);
-        }
-        if(video_saving_status == STARTED) {
-            video_writer->write(tmp_frame);
-        }
-        if(video_saving_status == STOPPING) {
-            stopSavingVideo();
-        }
+//        if(motion_detecting_status) {
+//            motionDetect(tmp_frame);
+//        }
+//        if(video_saving_status == STARTING) {
+//            startSavingVideo(tmp_frame);
+//        }
+//        if(video_saving_status == STARTED) {
+//            video_writer->write(tmp_frame);
+//        }
+//        if(video_saving_status == STOPPING) {
+//            stopSavingVideo();
+//        }
 
         cvtColor(tmp_frame, tmp_frame, cv::COLOR_BGR2RGB);
-        data_lock->lock();
+        //data_lock->lock();
         frame = tmp_frame;
         data_lock->unlock();
         emit frameCaptured(&frame);
-        if(fps_calculating) {
-            calculateFPS(cap);
-        }
+//        if(fps_calculating) {
+//            calculateFPS(cap);
+//        }
     }
     cap.release();
     running = false;
@@ -94,66 +93,3 @@ void CaptureThread::calculateFPS(cv::VideoCapture &cap)
 }
 
 
-void CaptureThread::startSavingVideo(cv::Mat &firstFrame)
-{
-    saved_video_name = Utilities::newSavedVideoName();
-
-    QString cover = Utilities::getSavedVideoPath(saved_video_name, "jpg");
-    cv::imwrite(cover.toStdString(), firstFrame);
-
-    video_writer = new cv::VideoWriter(
-        Utilities::getSavedVideoPath(saved_video_name, "avi").toStdString(),
-        cv::VideoWriter::fourcc('M','J','P','G'),
-        fps? fps: 30,
-        cv::Size(frame_width,frame_height));
-    video_saving_status = STARTED;
-}
-
-
-void CaptureThread::stopSavingVideo()
-{
-    video_saving_status = STOPPED;
-    video_writer->release();
-    delete video_writer;
-    video_writer = nullptr;
-    emit videoSaved(saved_video_name);
-}
-
-void CaptureThread::motionDetect(cv::Mat &frame)
-{
-    cv::Mat fgmask;
-    segmentor->apply(frame, fgmask);
-    if (fgmask.empty()) {
-            return;
-    }
-
-    cv::threshold(fgmask, fgmask, 25, 255, cv::THRESH_BINARY);
-
-    int noise_size = 9;
-    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(noise_size, noise_size));
-    cv::erode(fgmask, fgmask, kernel);
-    kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(noise_size, noise_size));
-    cv::dilate(fgmask, fgmask, kernel, cv::Point(-1,-1), 3);
-
-    vector<vector<cv::Point> > contours;
-    cv::findContours(fgmask, contours, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
-
-    bool has_motion = contours.size() > 0;
-    if(!motion_detected && has_motion) {
-        motion_detected = true;
-        setVideoSavingStatus(STARTING);
-        qDebug() << "new motion detected, should send a notification.";
-        QtConcurrent::run(Utilities::notifyMobile, cameraID);
-    } else if (motion_detected && !has_motion) {
-        motion_detected = false;
-        setVideoSavingStatus(STOPPING);
-        qDebug() << "detected motion disappeared.";
-    }
-
-    cv::Scalar color = cv::Scalar(0, 0, 255); // red
-    for(size_t i = 0; i < contours.size(); i++) {
-        cv::Rect rect = cv::boundingRect(contours[i]);
-        cv::rectangle(frame, rect, color, 1);
-        //cv::drawContours(frame, contours, (int)i, color, 1);
-    }
-}

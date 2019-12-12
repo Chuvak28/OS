@@ -51,6 +51,7 @@ void CaptureThread::run() {
         data_lock->lock();
         frame = tmp_frame;
         data_lock->unlock();
+        emit frameCaptured(&frame);
 
     }
     cap.release();

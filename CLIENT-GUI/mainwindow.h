@@ -33,6 +33,7 @@ public:
     ~MainWindow();
     QString imagePath;
 
+
 private slots:
     void on_pushButton_2_clicked();
 
@@ -40,15 +41,15 @@ private slots:
 
     void on_pushButton_Send_clicked();
 
-    void on_pushButton_ScreenShot_clicked();
 
-private slots:
+
 
     void openCamera();
     void updateFrame(cv::Mat*);
     void takePhoto();
     void appendSavedPhoto(QString name);
     //void updateMasks(int status);
+
 
 private:
     void populateSavedList();

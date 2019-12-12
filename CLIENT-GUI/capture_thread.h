@@ -42,9 +42,6 @@ private:
 
     // take photos
     bool taking_photo;
-
-
-    uint8_t masks_flag;
 };
 
 #endif // CAPTURE_THREAD_H

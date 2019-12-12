@@ -45,6 +45,7 @@ public:
     QLineEdit *lineEdit_Display_PATH;
     QPushButton *pushButton_Send;
     QGraphicsView *imageView;
+    QPushButton *pushButton_Make_Screenshot;
     QMenuBar *menubar;
     QStatusBar *statusbar;
 
@@ -134,6 +135,9 @@ public:
         imageView = new QGraphicsView(centralwidget);
         imageView->setObjectName(QString::fromUtf8("imageView"));
         imageView->setGeometry(QRect(250, 20, 701, 501));
+        pushButton_Make_Screenshot = new QPushButton(centralwidget);
+        pushButton_Make_Screenshot->setObjectName(QString::fromUtf8("pushButton_Make_Screenshot"));
+        pushButton_Make_Screenshot->setGeometry(QRect(50, 260, 131, 25));
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName(QString::fromUtf8("menubar"));
@@ -157,6 +161,7 @@ public:
         label_2->setText(QCoreApplication::translate("MainWindow", "Port No.", nullptr));
         pushButton_Connect->setText(QCoreApplication::translate("MainWindow", "Connect to Server", nullptr));
         pushButton_Send->setText(QCoreApplication::translate("MainWindow", "Send", nullptr));
+        pushButton_Make_Screenshot->setText(QCoreApplication::translate("MainWindow", "Make Screenshot", nullptr));
     } // retranslateUi
 
 };

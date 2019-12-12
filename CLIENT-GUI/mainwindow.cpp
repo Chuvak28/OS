@@ -15,6 +15,9 @@ MainWindow::MainWindow(QWidget *parent)
     data_lock = new QMutex();
     imageScene = new QGraphicsScene(this);
     ui->imageView->setScene(imageScene);
+    connect(ui->pushButton_Make_Screenshot,SIGNAL(clicked(bool)), this,SLOT(takePhoto()));
+
+
 }
 
 MainWindow::~MainWindow()
@@ -37,6 +40,13 @@ void MainWindow::on_pushButton_Connect_clicked()
     openCamera();
 }
 
+void MainWindow::takePhoto()
+{
+    if(capturer != nullptr) {
+
+        capturer->takePhoto();
+    }
+}
 void MainWindow::on_pushButton_Send_clicked()
 {
     char *str2 = ui->lineEdit_Display_PATH->text().toLatin1().data();
@@ -47,14 +57,13 @@ void MainWindow::on_pushButton_Send_clicked()
 
 void MainWindow::openCamera()
 {
-    //    if(capturer != nullptr) {
-    //        // if a thread is already running, stop it
-    //        capturer->setRunning(false);
-    //        disconnect(capturer, &CaptureThread::frameCaptured, this, &MainWindow::updateFrame);
-
-
-    //       // connect(capturer, &CaptureThread::finished, capturer, &CaptureThread::deleteLater);
-    //    }
+//    if(capturer != nullptr) {
+//        // if a thread is already running, stop it
+//        capturer->setRunning(false);
+//        disconnect(capturer, &CaptureThread::frameCaptured, this, &MainWindow::updateFrame);
+//        //disconnect(capturer, &CaptureThread::photoTaken, this, &MainWindow::appendSavedPhoto);
+//        //connect(capturer, &CaptureThread::finished, capturer, &CaptureThread::deleteLater);
+//    }
 
     int camID = 0;
     capturer = new CaptureThread(camID, data_lock);
@@ -81,29 +90,13 @@ void MainWindow::updateFrame(cv::Mat *mat)
     ui->imageView->setSceneRect(image.rect());
 }
 
-
-
-void MainWindow::on_pushButton_ScreenShot_clicked()
-{
-    takePhoto();
-}
-
-void MainWindow::takePhoto()
-{
-    if(capturer != nullptr) {
-
-        capturer->takePhoto();
-    }
-}
-
-
 void MainWindow::populateSavedList()
 {
     QDir dir(Utilities::getDataPath());
     QStringList nameFilters;
     nameFilters << "*.jpg";
     QFileInfoList files = dir.entryInfoList(
-        nameFilters, QDir::NoDotAndDotDot | QDir::Files, QDir::Name);
+                nameFilters, QDir::NoDotAndDotDot | QDir::Files, QDir::Name);
 
     foreach(QFileInfo photo, files) {
         QString name = photo.baseName();
@@ -140,3 +133,4 @@ void MainWindow::appendSavedPhoto(QString name)
 //        }
 //    }
 //}
+

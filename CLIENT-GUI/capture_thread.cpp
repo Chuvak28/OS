@@ -21,7 +21,7 @@ CaptureThread::CaptureThread(QString videoPath, QMutex *lock):
     //frame_width = frame_height = 0;
     taking_photo = false;
 
-    masks_flag = 0;
+   // masks_flag = 0;
 }
 
 CaptureThread::~CaptureThread() {
@@ -37,12 +37,13 @@ void CaptureThread::run() {
     //frame_height = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
 
 
-    QString model_data = QApplication::instance()->applicationDirPath() + "/data/lbfmodel.yaml";
 
     while(running) {
         cap >> tmp_frame;
 
-
+        if (tmp_frame.empty()) {
+                    break;
+                }
         if(taking_photo) {
             takePhoto(tmp_frame);
         }

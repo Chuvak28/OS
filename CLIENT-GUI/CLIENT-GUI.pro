@@ -6,8 +6,7 @@ CONFIG += c++11
 
 # OpenCv Configuration
 INCLUDEPATH += /usr/local/include/opencv
-LIBS += -L/lib -I/usr/include/opencv -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -lopencv_objdetect -lopencv_video -lopencv_videoio -lopencv_videostab
-
+LIBS += -L/lib -I/usr/include/opencv -lopencv_core -lopencv_imgproc -lopencv_imgcodecs -lopencv_video -lopencv_videoio -lopencv_objdetect
 
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings

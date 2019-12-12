@@ -23,12 +23,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     capture_thread.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    utilities.cpp
 
 HEADERS += \
     c_qt.h \
     capture_thread.h \
-    mainwindow.h
+    mainwindow.h \
+    utilities.h
 
 FORMS += \
     mainwindow.ui
@@ -37,3 +39,5 @@ FORMS += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+DISTFILES +=

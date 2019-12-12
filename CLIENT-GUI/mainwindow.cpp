@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "c_qt.h"
+#include "utilities.h"
 
 
 #include "opencv2/videoio.hpp"
@@ -14,8 +15,6 @@ MainWindow::MainWindow(QWidget *parent)
     data_lock = new QMutex();
     imageScene = new QGraphicsScene(this);
     ui->imageView->setScene(imageScene);
-
-
 }
 
 MainWindow::~MainWindow()
@@ -27,7 +26,7 @@ MainWindow::~MainWindow()
 void MainWindow::on_pushButton_2_clicked()
 {
     imagePath = QFileDialog::getOpenFileName(this,tr("Open File"),
-                                                     "",tr("JPEG (*.jpg *.jpeg);;PNG (*.png)" ));
+                                             "",tr("JPEG (*.jpg *.jpeg);;PNG (*.png)" ));
     ui->lineEdit_Display_PATH->setText(imagePath);
 
 }
@@ -35,7 +34,7 @@ void MainWindow::on_pushButton_2_clicked()
 void MainWindow::on_pushButton_Connect_clicked()
 {
 
-openCamera();
+    openCamera();
 }
 
 void MainWindow::on_pushButton_Send_clicked()
@@ -48,26 +47,23 @@ void MainWindow::on_pushButton_Send_clicked()
 
 void MainWindow::openCamera()
 {
-//    if(capturer != nullptr) {
-//        // if a thread is already running, stop it
-//        capturer->setRunning(false);
-//        disconnect(capturer, &CaptureThread::frameCaptured, this, &MainWindow::updateFrame);
-//       disconnect(capturer, &CaptureThread::fpsChanged, this, &MainWindow::updateFPS);
-//        //disconnect(capturer, &CaptureThread::videoSaved, this, &MainWindow::appendSavedVideo);
-//       // connect(capturer, &CaptureThread::finished, capturer, &CaptureThread::deleteLater);
-//    }
-    // I am using my second camera whose Index is 2.  Usually, the
-    // Index of the first camera is 0.
+    //    if(capturer != nullptr) {
+    //        // if a thread is already running, stop it
+    //        capturer->setRunning(false);
+    //        disconnect(capturer, &CaptureThread::frameCaptured, this, &MainWindow::updateFrame);
+
+
+    //       // connect(capturer, &CaptureThread::finished, capturer, &CaptureThread::deleteLater);
+    //    }
+
     int camID = 0;
     capturer = new CaptureThread(camID, data_lock);
     connect(capturer, &CaptureThread::frameCaptured, this, &MainWindow::updateFrame);
-    //connect(capturer, &CaptureThread::fpsChanged, this, &MainWindow::updateFPS);
-    //connect(capturer, &CaptureThread::videoSaved, this, &MainWindow::appendSavedVideo);
+    connect(capturer, &CaptureThread::photoTaken, this, &MainWindow::appendSavedPhoto);
+
     capturer->start();
     ui->lineEdit_Display_PATH->setText(QString("Capturing Camera %1").arg(camID));
-//    monitorCheckBox->setCheckState(Qt::Unchecked);
-//    recordButton->setText("Record");
-//    recordButton->setEnabled(true);
+
 }
 
 void MainWindow::updateFrame(cv::Mat *mat)
@@ -85,62 +81,62 @@ void MainWindow::updateFrame(cv::Mat *mat)
     ui->imageView->setSceneRect(image.rect());
 }
 
-void MainWindow::calculateFPS()
+
+
+void MainWindow::on_pushButton_ScreenShot_clicked()
+{
+    takePhoto();
+}
+
+void MainWindow::takePhoto()
 {
     if(capturer != nullptr) {
-        capturer->startCalcFPS();
+
+        capturer->takePhoto();
     }
 }
 
 
-
-void MainWindow::updateFPS(float fps)
+void MainWindow::populateSavedList()
 {
-    ui->lineEdit_Display_PATH->setText(QString("FPS of current camera is %1").arg(fps));
+    QDir dir(Utilities::getDataPath());
+    QStringList nameFilters;
+    nameFilters << "*.jpg";
+    QFileInfoList files = dir.entryInfoList(
+        nameFilters, QDir::NoDotAndDotDot | QDir::Files, QDir::Name);
+
+    foreach(QFileInfo photo, files) {
+        QString name = photo.baseName();
+        QStandardItem *item = new QStandardItem();
+        list_model->appendRow(item);
+        QModelIndex index = list_model->indexFromItem(item);
+        list_model->setData(index, QPixmap(photo.absoluteFilePath()).scaledToHeight(145), Qt::DecorationRole);
+        list_model->setData(index, name, Qt::DisplayRole);
+    }
+}
+
+void MainWindow::appendSavedPhoto(QString name)
+{
+    QString photo_path = Utilities::getPhotoPath(name, "jpg");
+    QStandardItem *item = new QStandardItem();
+    list_model->appendRow(item);
+    QModelIndex index = list_model->indexFromItem(item);
+    list_model->setData(index, QPixmap(photo_path).scaledToHeight(145), Qt::DecorationRole);
+    list_model->setData(index, name, Qt::DisplayRole);
+    saved_list->scrollTo(index);
 }
 
 
-//void MainWindow::recordingStartStop() {
-//    QString text = recordButton->text();
-//    if(text == "Record" && capturer != nullptr) {
-//        capturer->setVideoSavingStatus(CaptureThread::STARTING);
-//        recordButton->setText("Stop Recording");
-//        monitorCheckBox->setCheckState(Qt::Unchecked);
-//        monitorCheckBox->setEnabled(false);
-//    } else if(text == "Stop Recording" && capturer != nullptr) {
-//        capturer->setVideoSavingStatus(CaptureThread::STOPPING);
-//        recordButton->setText("Record");
-//        monitorCheckBox->setEnabled(true);
+//void MainWindow::updateMasks(int status)
+//{
+//    if(capturer == nullptr) {
+//        return;
+//    }
+
+//    QCheckBox *box = qobject_cast<QCheckBox*>(sender());
+//    for (int i = 0; i < CaptureThread::MASK_COUNT; i++){
+//        if (mask_checkboxes[i] == box) {
+//            capturer->updateMasksFlag(static_cast<CaptureThread::MASK_TYPE>(i), status != 0);
+//        }
 //    }
 //}
-
-
-//void MainWindow::populateSavedList()
-//{
-//    QDir dir(Utilities::getDataPath());
-//    QStringList nameFilters;
-//    nameFilters << "*.jpg";
-//    QFileInfoList files = dir.entryInfoList(
-//        nameFilters, QDir::NoDotAndDotDot | QDir::Files, QDir::Name);
-
-//    foreach(QFileInfo cover, files) {
-//        QString name = cover.baseName();
-//        QStandardItem *item = new QStandardItem();
-//        list_model->appendRow(item);
-//        QModelIndex index = list_model->indexFromItem(item);
-//        list_model->setData(index, QPixmap(cover.absoluteFilePath()).scaledToHeight(145), Qt::DecorationRole);
-//        list_model->setData(index, name, Qt::DisplayRole);
-//    }
-//}
-
-//void MainWindow::appendSavedVideo(QString name)
-//{
-//    QString cover = Utilities::getSavedVideoPath(name, "jpg");
-//    QStandardItem *item = new QStandardItem();
-//    list_model->appendRow(item);
-//    QModelIndex index = list_model->indexFromItem(item);
-//    list_model->setData(index, QPixmap(cover).scaledToHeight(145), Qt::DecorationRole);
-//    list_model->setData(index, name, Qt::DisplayRole);
-//    saved_list->scrollTo(index);
-//}
-

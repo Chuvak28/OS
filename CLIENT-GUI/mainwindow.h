@@ -39,14 +39,19 @@ private slots:
     void on_pushButton_Connect_clicked();
 
     void on_pushButton_Send_clicked();
+
+    void on_pushButton_ScreenShot_clicked();
+
 private slots:
 
-    //void showCameraInfo();
     void openCamera();
     void updateFrame(cv::Mat*);
-    void calculateFPS();
-    void updateFPS(float);
+    void takePhoto();
+    void appendSavedPhoto(QString name);
+    //void updateMasks(int status);
 
+private:
+    void populateSavedList();
 
 private:
     Ui::MainWindow *ui;
@@ -55,13 +60,7 @@ private:
     QMutex *data_lock;
     CaptureThread *capturer;
 
-    QCheckBox *monitorCheckBox;
-    QPushButton *recordButton;
-
     QListView *saved_list;
     QStandardItemModel *list_model;
-
-    QStatusBar *mainStatusBar;
-    QLabel *mainStatusLabel;
 };
 #endif // MAINWINDOW_H
